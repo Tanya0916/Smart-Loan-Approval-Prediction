@@ -190,25 +190,52 @@ elif menu == "EDA":
 # -----------------------------
 # PREDICTION PAGE
 # -----------------------------
-if st.button("Predict Loan Status"):
+elif menu == "Prediction":
     
-    input_data = pd.DataFrame([{
-        "Gender": gender,
-        "Married": married,
-        "Dependents": dependents,
-        "Education": education,
-        "Self_Employed": self_employed,
-        "ApplicantIncome": applicant_income,
-        "CoapplicantIncome": coapplicant_income,
-        "LoanAmount": loan_amount,
-        "Loan_Amount_Term": loan_term,
-        "Credit_History": credit_history,
-        "Property_Area": property_area
-    }])
+    st.title("🤖 Loan Prediction")
 
-    # 🔥 IMPORTANT: enforce correct column order
-    input_data = input_data[
-        [
+    st.write("Enter applicant details below:")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        gender = st.selectbox("Gender", ["Male", "Female"])
+        married = st.selectbox("Married", ["Yes", "No"])
+        dependents = st.selectbox("Dependents", ["0", "1", "2", "3+"])
+        education = st.selectbox("Education", ["Graduate", "Not Graduate"])
+        self_employed = st.selectbox("Self Employed", ["Yes", "No"])
+        credit_history = st.selectbox("Credit History", [1.0, 0.0])
+
+    with col2:
+        applicant_income = st.number_input("Applicant Income", min_value=0, value=5000)
+        coapplicant_income = st.number_input("Coapplicant Income", min_value=0, value=0)
+        loan_amount = st.number_input("Loan Amount", min_value=0, value=100)
+        loan_term = st.number_input("Loan Term (in days)", min_value=12, value=360)
+        property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
+
+    if st.button("Predict Loan Status"):
+
+        # -----------------------------
+        # Build input DataFrame
+        # -----------------------------
+        input_data = pd.DataFrame([{
+            "Gender": gender,
+            "Married": married,
+            "Dependents": dependents,
+            "Education": education,
+            "Self_Employed": self_employed,
+            "ApplicantIncome": applicant_income,
+            "CoapplicantIncome": coapplicant_income,
+            "LoanAmount": loan_amount,
+            "Loan_Amount_Term": loan_term,
+            "Credit_History": credit_history,
+            "Property_Area": property_area
+        }])
+
+        # -----------------------------
+        # Ensure correct column order
+        # -----------------------------
+        expected_columns = [
             "Gender",
             "Married",
             "Dependents",
@@ -221,24 +248,50 @@ if st.button("Predict Loan Status"):
             "Credit_History",
             "Property_Area"
         ]
-    ]
 
-    # Handle missing numeric values safely
-    input_data["LoanAmount"] = pd.to_numeric(input_data["LoanAmount"], errors="coerce")
-    input_data["Loan_Amount_Term"] = pd.to_numeric(input_data["Loan_Amount_Term"], errors="coerce")
+        input_data = input_data[expected_columns]
 
-    prediction = model.predict(input_data)[0]
-    probability = model.predict_proba(input_data)[0][1]
+        # -----------------------------
+        # Safety type conversion
+        # -----------------------------
+        numeric_cols = [
+            "ApplicantIncome",
+            "CoapplicantIncome",
+            "LoanAmount",
+            "Loan_Amount_Term",
+            "Credit_History"
+        ]
 
-    st.subheader("Result")
+        for col in numeric_cols:
+            input_data[col] = pd.to_numeric(input_data[col], errors="coerce")
 
-    if prediction == 1:
-        st.success(" Loan Approved")
-    else:
-        st.error(" Loan Rejected")
+        # -----------------------------
+        # Prediction
+        # -----------------------------
+        prediction = model.predict(input_data)[0]
+        probability = model.predict_proba(input_data)[0][1]
 
-    st.write(f"Approval Probability: {probability:.2f}")
-    st.progress(float(probability))
+        # -----------------------------
+        # Output
+        # -----------------------------
+        st.subheader("Result")
+
+        if prediction == 1:
+            st.success("✅ Loan Approved")
+        else:
+            st.error("❌ Loan Rejected")
+
+        st.write(f"Approval Probability: **{probability:.2f}**")
+
+        st.progress(float(probability))
+
+        # Optional: explanation
+        if probability > 0.7:
+            st.info("High chance of approval 👍")
+        elif probability > 0.4:
+            st.warning("Moderate chance ⚠️")
+        else:
+            st.error("Low chance of approval ")
 
 # -----------------------------
 # MODEL ACCURACY PAGE
