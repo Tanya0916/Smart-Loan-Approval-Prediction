@@ -213,11 +213,7 @@ elif menu == "Prediction":
         property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
 
     if st.button("Predict Loan Status"):
-
-    # -----------------------------
-    # Create input_data FIRST
-    # -----------------------------
-    input_data = pd.DataFrame([[
+        input_data = pd.DataFrame([[
         gender,
         married,
         dependents,
