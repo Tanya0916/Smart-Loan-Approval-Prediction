@@ -1,12 +1,22 @@
+# train_model.py (Part 1A)
+
+import warnings
+warnings.filterwarnings("ignore")
+
+import pickle
+import numpy as np
 import pandas as pd
-import joblib
 
 from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-
+from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.metrics import (
     accuracy_score,
@@ -14,80 +24,60 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-
-# ==========================================================
-# LOAD DATASET
-# ==========================================================
+# ---------------------------------------
+# Load Dataset
+# ---------------------------------------
 
 df = pd.read_csv("loan_prediction.csv")
 
-print("\n===================================")
-print("Dataset Loaded Successfully!")
-print("===================================\n")
+print("=" * 60)
+print("Dataset Shape:", df.shape)
+print("=" * 60)
 
-print(df.head())
-
-# ==========================================================
-# REMOVE LOAN ID
-# ==========================================================
+# ---------------------------------------
+# Drop Loan_ID if present
+# ---------------------------------------
 
 if "Loan_ID" in df.columns:
-    df.drop("Loan_ID", axis=1, inplace=True)
+    df = df.drop("Loan_ID", axis=1)
 
-# ==========================================================
-# REMOVE MISSING TARGET
-# ==========================================================
-
-df = df.dropna(subset=["Loan_Status"])
-
-# ==========================================================
-# ENCODE TARGET
-# ==========================================================
+# ---------------------------------------
+# Target Encoding
+# ---------------------------------------
 
 df["Loan_Status"] = df["Loan_Status"].map({
     "Y": 1,
     "N": 0
-}).astype(int)
+})
 
-# ==========================================================
-# FEATURES & TARGET
-# ==========================================================
+# ---------------------------------------
+# Features & Target
+# ---------------------------------------
 
 X = df.drop("Loan_Status", axis=1)
 y = df["Loan_Status"]
 
-# ==========================================================
-# NUMERIC FEATURES
-# ==========================================================
+# ---------------------------------------
+# Identify Numeric & Categorical Columns
+# ---------------------------------------
 
-numeric_features = [
-    "ApplicantIncome",
-    "CoapplicantIncome",
-    "LoanAmount",
-    "Loan_Amount_Term",
-    "Credit_History"
-]
+numeric_features = X.select_dtypes(
+    include=["int64", "float64"]
+).columns.tolist()
 
-# ==========================================================
-# CATEGORICAL FEATURES
-# ==========================================================
+categorical_features = X.select_dtypes(
+    include=["object"]
+).columns.tolist()
 
-categorical_features = [
-    "Gender",
-    "Married",
-    "Dependents",
-    "Education",
-    "Self_Employed",
-    "Property_Area"
-]
+print("Numeric Features:")
+print(numeric_features)
 
-# ==========================================================
-# NUMERIC PIPELINE
-# ==========================================================
+print("\nCategorical Features:")
+print(categorical_features)
+
+# ---------------------------------------
+# Numeric Pipeline
+# ---------------------------------------
 
 numeric_transformer = Pipeline(
     steps=[
@@ -96,31 +86,44 @@ numeric_transformer = Pipeline(
     ]
 )
 
-# ==========================================================
-# CATEGORICAL PIPELINE
-# ==========================================================
+# ---------------------------------------
+# Categorical Pipeline
+# ---------------------------------------
 
 categorical_transformer = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("encoder", OneHotEncoder(handle_unknown="ignore"))
+        (
+            "encoder",
+            OneHotEncoder(
+                handle_unknown="ignore"
+            )
+        )
     ]
 )
 
-# ==========================================================
-# PREPROCESSOR
-# ==========================================================
+# ---------------------------------------
+# Column Transformer
+# ---------------------------------------
 
 preprocessor = ColumnTransformer(
     transformers=[
-        ("num", numeric_transformer, numeric_features),
-        ("cat", categorical_transformer, categorical_features)
+        (
+            "num",
+            numeric_transformer,
+            numeric_features
+        ),
+        (
+            "cat",
+            categorical_transformer,
+            categorical_features
+        )
     ]
 )
 
-# ==========================================================
-# TRAIN TEST SPLIT
-# ==========================================================
+# ---------------------------------------
+# Train-Test Split
+# ---------------------------------------
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -130,45 +133,33 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-# ==========================================================
-# MODELS
-# ==========================================================
+print("\nTraining Samples :", X_train.shape[0])
+print("Testing Samples  :", X_test.shape[0])
+
+# ---------------------------------------
+# Models
+# ---------------------------------------
 
 models = {
-
-    "Logistic Regression":
-        LogisticRegression(
-            max_iter=2000,
-            random_state=42
-        ),
-
-    "Random Forest":
-        RandomForestClassifier(
-            n_estimators=200,
-            random_state=42
-        ),
-
-    "Decision Tree":
-        DecisionTreeClassifier(
-            random_state=42
-        ),
-
-    "KNN":
-        KNeighborsClassifier()
-
+    "Logistic Regression": LogisticRegression(max_iter=1000),
+    "Decision Tree": DecisionTreeClassifier(random_state=42),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=200,
+        random_state=42
+    ),
+    "KNN": KNeighborsClassifier(n_neighbors=5)
 }
 
-best_pipeline = None
-best_model_name = ""
+results = {}
+
+best_model = None
 best_accuracy = 0
+best_name = ""
 
-print("\n===================================")
-print("Training Models")
-print("===================================\n")
-
-# ==========================================================
-# TRAIN ALL MODELS
-# ==========================================================
+print("\nTraining models...\n")
+# ---------------------------------------
+# Train All Models
+# ---------------------------------------
 
 for name, model in models.items():
 
@@ -181,67 +172,81 @@ for name, model in models.items():
 
     pipeline.fit(X_train, y_train)
 
-    prediction = pipeline.predict(X_test)
+    predictions = pipeline.predict(X_test)
 
-    accuracy = accuracy_score(
-        y_test,
-        prediction
-    )
+    accuracy = accuracy_score(y_test, predictions)
 
-    print(f"{name} : {accuracy:.4f}")
+    results[name] = accuracy
+
+    print("=" * 60)
+    print(name)
+    print("=" * 60)
+
+    print(f"Accuracy : {accuracy:.4f}")
+
+    print("\nClassification Report\n")
+    print(classification_report(y_test, predictions))
+
+    print("\nConfusion Matrix\n")
+    print(confusion_matrix(y_test, predictions))
 
     if accuracy > best_accuracy:
-
         best_accuracy = accuracy
-        best_pipeline = pipeline
-        best_model_name = name
+        best_model = pipeline
+        best_name = name
 
-# ==========================================================
-# BEST MODEL
-# ==========================================================
+# ---------------------------------------
+# Accuracy Comparison
+# ---------------------------------------
 
-print("\n===================================")
-print("Best Model")
-print("===================================")
+print("\n")
+print("=" * 60)
+print("MODEL COMPARISON")
+print("=" * 60)
 
-print(best_model_name)
+for model_name, score in results.items():
+    print(f"{model_name:<25} : {score:.4f}")
 
-print(f"\nAccuracy : {best_accuracy*100:.2f}%")
+print("\nBest Model :", best_name)
+print("Best Accuracy :", round(best_accuracy * 100, 2), "%")
 
-# ==========================================================
-# EVALUATION
-# ==========================================================
+# ---------------------------------------
+# Save Model
+# ---------------------------------------
 
-prediction = best_pipeline.predict(X_test)
+with open("model.pkl", "wb") as file:
+    pickle.dump(best_model, file)
 
-print("\n===================================")
-print("Classification Report")
-print("===================================\n")
+print("\nmodel.pkl saved successfully.")
 
-print(classification_report(
-    y_test,
-    prediction
-))
+# ---------------------------------------
+# Save Accuracy
+# ---------------------------------------
 
-print("\n===================================")
-print("Confusion Matrix")
-print("===================================\n")
+accuracy_df = pd.DataFrame({
+    "Model": list(results.keys()),
+    "Accuracy": list(results.values())
+})
 
-print(confusion_matrix(
-    y_test,
-    prediction
-))
-
-# ==========================================================
-# SAVE MODEL
-# ==========================================================
-
-joblib.dump(
-    best_pipeline,
-    "model.pkl"
+accuracy_df.to_csv(
+    "model_accuracy.csv",
+    index=False
 )
 
-print("\n===================================")
-print("Model Saved Successfully!")
-print("Saved File : model.pkl")
-print("===================================")
+print("model_accuracy.csv saved.")
+
+# ---------------------------------------
+# Example Prediction
+# ---------------------------------------
+
+sample = X.iloc[[0]]
+
+prediction = best_model.predict(sample)[0]
+probability = best_model.predict_proba(sample)[0]
+
+print("\nExample Prediction")
+print("----------------------")
+print("Prediction :", "Approved" if prediction == 1 else "Rejected")
+print("Probability :", probability)
+
+print("\nTraining Completed Successfully.")
