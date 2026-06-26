@@ -3,7 +3,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import pickle
+import joblib
 import numpy as np
 import pandas as pd
 
@@ -214,8 +214,8 @@ print("Best Accuracy :", round(best_accuracy * 100, 2), "%")
 # Save Model
 # ---------------------------------------
 
-with open("model.pkl", "wb") as file:
-    pickle.dump(best_model, file)
+with open("model.joblib", "wb") as file:
+    joblib.dump(best_model, file)
 
 print("\nmodel.pkl saved successfully.")
 
