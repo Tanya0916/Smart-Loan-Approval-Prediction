@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
+import joblib
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
@@ -52,8 +52,7 @@ df = load_data()
 # -----------------------------
 @st.cache_resource
 def load_model():
-    with open("model.pkl", "rb") as f:
-        return pickle.load(f)
+    return joblib.load("model.joblib")
 
 model = load_model()
 
