@@ -122,7 +122,9 @@ Prediction
 ```
 
 ---
-![Dashboard](Images/Analysis.png.png)
-![Dashboard](Images/Model_Performance.png)
+## Analysis
+
+![Dashboard](Images/Analysis.png)
+
 
 This project is developed for educational purposes.
