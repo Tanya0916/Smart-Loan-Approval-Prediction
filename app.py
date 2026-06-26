@@ -417,7 +417,8 @@ elif page == " Prediction":
     st.write("")
 
     if st.button("🔍 Predict Loan Status", use_container_width=True):
-        input_df = pd.DataFrame({
+    
+     input_df = pd.DataFrame({
 
         "Gender": [gender],
         "Married": [married],
@@ -436,11 +437,9 @@ elif page == " Prediction":
     try:
 
         prediction = model.predict(input_df)[0]
-
         probability = model.predict_proba(input_df)
 
         st.divider()
-
         st.subheader("Prediction Result")
 
         if prediction == 1:
@@ -448,7 +447,6 @@ elif page == " Prediction":
             confidence = probability[0][1] * 100
 
             st.success("✅ Congratulations! Loan Approved")
-
             st.progress(int(confidence))
 
             st.metric(
@@ -463,7 +461,6 @@ elif page == " Prediction":
             confidence = probability[0][0] * 100
 
             st.error("❌ Loan Rejected")
-
             st.progress(int(confidence))
 
             st.metric(
