@@ -252,6 +252,29 @@ if menu == "Prediction":
         st.write(f"Approval Probability: {probability:.2f}")
         st.progress(float(probability))
 
+
+# MODEL ACCURACY PAGE
+
+elif menu == "Model Accuracy":
+
+    st.title("📈 Model Performance")
+
+    try:
+        acc_df = pd.read_csv("model_accuracy.csv")
+
+        fig = px.bar(
+            acc_df,
+            x="Model",
+            y="Accuracy",
+            color="Accuracy",
+            text="Accuracy"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    except FileNotFoundError:
+        st.warning("Accuracy file not found. Run train_model.py first.")
+        
 # -----------------------------
 # ABOUT PAGE
 # -----------------------------
