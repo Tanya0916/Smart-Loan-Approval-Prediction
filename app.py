@@ -189,11 +189,9 @@ elif menu == "EDA":
 # -----------------------------
 # PREDICTION PAGE
 # -----------------------------
-elif menu == "Prediction":
-    
-    st.title("🤖 Loan Prediction")
+if menu == "Prediction":
 
-    st.write("Enter applicant details below:")
+    st.title("🤖 Loan Prediction")
 
     col1, col2 = st.columns(2)
 
@@ -206,80 +204,53 @@ elif menu == "Prediction":
         credit_history = st.selectbox("Credit History", [1.0, 0.0])
 
     with col2:
-        applicant_income = st.number_input("Applicant Income", min_value=0, value=5000)
-        coapplicant_income = st.number_input("Coapplicant Income", min_value=0, value=0)
-        loan_amount = st.number_input("Loan Amount", min_value=0, value=100)
-        loan_term = st.number_input("Loan Term (in days)", min_value=12, value=360)
+        applicant_income = st.number_input("Applicant Income", 0)
+        coapplicant_income = st.number_input("Coapplicant Income", 0)
+        loan_amount = st.number_input("Loan Amount", 0)
+        loan_term = st.number_input("Loan Term", 360)
         property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
 
+    # 🔥 ONLY RUN WHEN BUTTON CLICKED
     if st.button("Predict Loan Status"):
+
         input_data = pd.DataFrame([[
-        gender,
-        married,
-        dependents,
-        education,
-        self_employed,
-        applicant_income,
-        coapplicant_income,
-        loan_amount,
-        loan_term,
-        credit_history,
-        property_area
-    ]], columns=[
-        "Gender",
-        "Married",
-        "Dependents",
-        "Education",
-        "Self_Employed",
-        "ApplicantIncome",
-        "CoapplicantIncome",
-        "LoanAmount",
-        "Loan_Amount_Term",
-        "Credit_History",
-        "Property_Area"
-    ])
+            gender,
+            married,
+            dependents,
+            education,
+            self_employed,
+            applicant_income,
+            coapplicant_income,
+            loan_amount,
+            loan_term,
+            credit_history,
+            property_area
+        ]], columns=[
+            "Gender",
+            "Married",
+            "Dependents",
+            "Education",
+            "Self_Employed",
+            "ApplicantIncome",
+            "CoapplicantIncome",
+            "LoanAmount",
+            "Loan_Amount_Term",
+            "Credit_History",
+            "Property_Area"
+        ])
 
-    # -----------------------------
-    # Predict ONLY inside button
-    # -----------------------------
-    prediction = model.predict(input_data)[0]
-    probability = model.predict_proba(input_data)[0][1]
+        prediction = model.predict(input_data)[0]
+        probability = model.predict_proba(input_data)[0][1]
 
-    # -----------------------------
-    # Output
-    # -----------------------------
-    st.subheader("Result")
+        st.subheader("Result")
 
-    if prediction == 1:
-        st.success("✅ Loan Approved")
-    else:
-        st.error(" Loan Rejected")
+        if prediction == 1:
+            st.success("✅ Loan Approved")
+        else:
+            st.error("❌ Loan Rejected")
 
-    st.write(f"Approval Probability: {probability:.2f}")
-    st.progress(float(probability))
-
-# -----------------------------
-# MODEL ACCURACY PAGE
-# -----------------------------
-elif menu == "Model Accuracy":
-
-    st.title("📈 Model Performance")
-
-    try:
-        acc_df = pd.read_csv("model_accuracy.csv")
-
-        fig = px.bar(
-            acc_df,
-            x="Model",
-            y="Accuracy",
-            color="Accuracy",
-            text="Accuracy"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    except:
-        st.warning("Run train_model.py first to generate accuracy file.")
+        st.write(f"Approval Probability: {probability:.2f}")
+        st.progress(float(probability))
 
 # -----------------------------
 # ABOUT PAGE
