@@ -190,44 +190,25 @@ elif menu == "EDA":
 # -----------------------------
 # PREDICTION PAGE
 # -----------------------------
-elif menu == "Prediction":
+if st.button("Predict Loan Status"):
+    
+    input_data = pd.DataFrame([{
+        "Gender": gender,
+        "Married": married,
+        "Dependents": dependents,
+        "Education": education,
+        "Self_Employed": self_employed,
+        "ApplicantIncome": applicant_income,
+        "CoapplicantIncome": coapplicant_income,
+        "LoanAmount": loan_amount,
+        "Loan_Amount_Term": loan_term,
+        "Credit_History": credit_history,
+        "Property_Area": property_area
+    }])
 
-    st.title("🤖 Loan Prediction")
-
-    st.write("Fill in the details below:")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        gender = st.selectbox("Gender", ["Male", "Female"])
-        married = st.selectbox("Married", ["Yes", "No"])
-        dependents = st.selectbox("Dependents", ["0", "1", "2", "3+"])
-        education = st.selectbox("Education", ["Graduate", "Not Graduate"])
-        self_employed = st.selectbox("Self Employed", ["Yes", "No"])
-        credit_history = st.selectbox("Credit History", [1.0, 0.0])
-
-    with col2:
-        applicant_income = st.number_input("Applicant Income", 0)
-        coapplicant_income = st.number_input("Coapplicant Income", 0)
-        loan_amount = st.number_input("Loan Amount", 0)
-        loan_term = st.number_input("Loan Term (days)", 360)
-        property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
-
-    if st.button("Predict Loan Status"):
-
-        input_data = pd.DataFrame([[
-            gender,
-            married,
-            dependents,
-            education,
-            self_employed,
-            applicant_income,
-            coapplicant_income,
-            loan_amount,
-            loan_term,
-            credit_history,
-            property_area
-        ]], columns=[
+    # 🔥 IMPORTANT: enforce correct column order
+    input_data = input_data[
+        [
             "Gender",
             "Married",
             "Dependents",
@@ -239,21 +220,25 @@ elif menu == "Prediction":
             "Loan_Amount_Term",
             "Credit_History",
             "Property_Area"
-        ])
+        ]
+    ]
 
-        prediction = model.predict(input_data)[0]
-        probability = model.predict_proba(input_data)[0][1]
+    # Handle missing numeric values safely
+    input_data["LoanAmount"] = pd.to_numeric(input_data["LoanAmount"], errors="coerce")
+    input_data["Loan_Amount_Term"] = pd.to_numeric(input_data["Loan_Amount_Term"], errors="coerce")
 
-        st.subheader("Result")
+    prediction = model.predict(input_data)[0]
+    probability = model.predict_proba(input_data)[0][1]
 
-        if prediction == 1:
-            st.success("✅ Loan Approved")
-        else:
-            st.error("❌ Loan Rejected")
+    st.subheader("Result")
 
-        st.write(f"Approval Probability: {probability:.2f}")
+    if prediction == 1:
+        st.success(" Loan Approved")
+    else:
+        st.error(" Loan Rejected")
 
-        st.progress(float(probability))
+    st.write(f"Approval Probability: {probability:.2f}")
+    st.progress(float(probability))
 
 # -----------------------------
 # MODEL ACCURACY PAGE
