@@ -214,66 +214,39 @@ elif menu == "Prediction":
         property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
 
     if st.button("Predict Loan Status"):
+        input_data = pd.DataFrame([[
+        gender,
+        married,
+        dependents,
+        education,
+        self_employed,
+        applicant_income,
+        coapplicant_income,
+        loan_amount,
+        loan_term,
+        credit_history,
+        property_area
+    ]], columns=[
+        "Gender",
+        "Married",
+        "Dependents",
+        "Education",
+        "Self_Employed",
+        "ApplicantIncome",
+        "CoapplicantIncome",
+        "LoanAmount",
+        "Loan_Amount_Term",
+        "Credit_History",
+        "Property_Area"
+    ])
 
-        # -----------------------------
-        # Build input DataFrame
-        # -----------------------------
-        input_data = pd.DataFrame([{
-            "Gender": gender,
-            "Married": married,
-            "Dependents": dependents,
-            "Education": education,
-            "Self_Employed": self_employed,
-            "ApplicantIncome": applicant_income,
-            "CoapplicantIncome": coapplicant_income,
-            "LoanAmount": loan_amount,
-            "Loan_Amount_Term": loan_term,
-            "Credit_History": credit_history,
-            "Property_Area": property_area
-        }])
+    # ❗ IMPORTANT: DO NOT convert dtypes manually
+    # Pipeline will handle everything
 
-        # -----------------------------
-        # Ensure correct column order
-        # -----------------------------
-        expected_columns = [
-            "Gender",
-            "Married",
-            "Dependents",
-            "Education",
-            "Self_Employed",
-            "ApplicantIncome",
-            "CoapplicantIncome",
-            "LoanAmount",
-            "Loan_Amount_Term",
-            "Credit_History",
-            "Property_Area"
-        ]
-
-        input_data = input_data[expected_columns]
-
-        # -----------------------------
-        # Safety type conversion
-        # -----------------------------
-        numeric_cols = [
-            "ApplicantIncome",
-            "CoapplicantIncome",
-            "LoanAmount",
-            "Loan_Amount_Term",
-            "Credit_History"
-        ]
-
-        for col in numeric_cols:
-            input_data[col] = pd.to_numeric(input_data[col], errors="coerce")
-
-        # -----------------------------
-        # Prediction
-        # -----------------------------
+    try:
         prediction = model.predict(input_data)[0]
         probability = model.predict_proba(input_data)[0][1]
 
-        # -----------------------------
-        # Output
-        # -----------------------------
         st.subheader("Result")
 
         if prediction == 1:
@@ -281,17 +254,12 @@ elif menu == "Prediction":
         else:
             st.error("❌ Loan Rejected")
 
-        st.write(f"Approval Probability: **{probability:.2f}**")
-
+        st.write(f"Approval Probability: {probability:.2f}")
         st.progress(float(probability))
 
-        # Optional: explanation
-        if probability > 0.7:
-            st.info("High chance of approval 👍")
-        elif probability > 0.4:
-            st.warning("Moderate chance ⚠️")
-        else:
-            st.error("Low chance of approval ")
+    except Exception as e:
+        st.error("Prediction failed")
+        st.exception(e)
 
 # -----------------------------
 # MODEL ACCURACY PAGE
