@@ -213,7 +213,11 @@ elif menu == "Prediction":
         property_area = st.selectbox("Property Area", ["Urban", "Rural", "Semiurban"])
 
     if st.button("Predict Loan Status"):
-        input_data = pd.DataFrame([[
+
+    # -----------------------------
+    # Create input_data FIRST
+    # -----------------------------
+    input_data = pd.DataFrame([[
         gender,
         married,
         dependents,
@@ -239,26 +243,24 @@ elif menu == "Prediction":
         "Property_Area"
     ])
 
-    # ❗ IMPORTANT: DO NOT convert dtypes manually
-    # Pipeline will handle everything
+    # -----------------------------
+    # Predict ONLY inside button
+    # -----------------------------
+    prediction = model.predict(input_data)[0]
+    probability = model.predict_proba(input_data)[0][1]
 
-    try:
-        prediction = model.predict(input_data)[0]
-        probability = model.predict_proba(input_data)[0][1]
+    # -----------------------------
+    # Output
+    # -----------------------------
+    st.subheader("Result")
 
-        st.subheader("Result")
+    if prediction == 1:
+        st.success("✅ Loan Approved")
+    else:
+        st.error(" Loan Rejected")
 
-        if prediction == 1:
-            st.success("✅ Loan Approved")
-        else:
-            st.error("❌ Loan Rejected")
-
-        st.write(f"Approval Probability: {probability:.2f}")
-        st.progress(float(probability))
-
-    except Exception as e:
-        st.error("Prediction failed")
-        st.exception(e)
+    st.write(f"Approval Probability: {probability:.2f}")
+    st.progress(float(probability))
 
 # -----------------------------
 # MODEL ACCURACY PAGE
