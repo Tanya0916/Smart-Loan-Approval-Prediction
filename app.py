@@ -416,33 +416,24 @@ elif page == " Prediction":
 
     st.write("")
 
-    if st.button(" Predict Loan Status", use_container_width=True):
-
+    if st.button("🔍 Predict Loan Status", use_container_width=True):
         input_df = pd.DataFrame({
 
-            "Gender":[gender],
+        "Gender": [gender],
+        "Married": [married],
+        "Dependents": [dependents],
+        "Education": [education],
+        "Self_Employed": [self_employed],
+        "ApplicantIncome": [float(applicant_income)],
+        "CoapplicantIncome": [float(coapplicant_income)],
+        "LoanAmount": [float(loan_amount)],
+        "Loan_Amount_Term": [float(loan_term)],
+        "Credit_History": [float(credit_history)],
+        "Property_Area": [property_area]
 
-            "Married":[married],
+    })
 
-            "Dependents":[dependents],
-
-            "Education":[education],
-
-            "Self_Employed":[self_employed],
-
-            "ApplicantIncome":[applicant_income],
-
-            "CoapplicantIncome":[coapplicant_income],
-
-            "LoanAmount":[loan_amount],
-
-            "Loan_Amount_Term":[loan_term],
-
-            "Credit_History":[credit_history],
-
-            "Property_Area":[property_area]
-
-        })
+    try:
 
         prediction = model.predict(input_df)[0]
 
@@ -456,7 +447,7 @@ elif page == " Prediction":
 
             confidence = probability[0][1] * 100
 
-            st.success(" Congratulations! Loan Approved")
+            st.success("✅ Congratulations! Loan Approved")
 
             st.progress(int(confidence))
 
@@ -471,7 +462,7 @@ elif page == " Prediction":
 
             confidence = probability[0][0] * 100
 
-            st.error(" Loan Rejected")
+            st.error("❌ Loan Rejected")
 
             st.progress(int(confidence))
 
@@ -489,17 +480,17 @@ elif page == " Prediction":
         csv = input_df.to_csv(index=False).encode("utf-8")
 
         st.download_button(
-
-            " Download Prediction Report",
-
+            "📥 Download Prediction Report",
             csv,
-
             "prediction.csv",
-
             "text/csv"
-
         )
 
+    except Exception as e:
+
+        st.error("Prediction failed.")
+
+        st.exception(e)
 # ==========================================================
 # ABOUT
 # ==========================================================
@@ -563,7 +554,7 @@ It is built using Python, Scikit-Learn, Pandas and Streamlit.
             "KNN"
         ],
         "Status":[
-            "Best Model",
+            "Compared",
             "Compared",
             "Compared",
             "Compared"
